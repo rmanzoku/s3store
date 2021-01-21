@@ -1,3 +1,8 @@
+.envrc
+
+results/
+!results/.gitkeep
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
