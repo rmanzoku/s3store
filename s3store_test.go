@@ -57,7 +57,7 @@ func TestSet(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := s.Set(tt.args.key, tt.args.body); (err != nil) != tt.wantErr {
+			if err := s.Put(tt.args.key, tt.args.body); (err != nil) != tt.wantErr {
 				t.Errorf("S3Store.Set() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

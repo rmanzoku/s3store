@@ -36,17 +36,31 @@ func NewS3Store(bucket string) (*S3Store, error) {
 	return s, nil
 }
 
-func (s *S3Store) Set(key string, body []byte) (err error) {
-	return s.SetWithCtx(context.TODO(), key, body, nil)
+func (s *S3Store) Put(key string, body []byte) (err error) {
+	return s.PutWithContentType(context.TODO(), key, body, "application/octet-stream")
 }
 
-func (s *S3Store) SetWithCtx(ctx context.Context, key string, body []byte, metadata map[string]string) (err error) {
+func (s *S3Store) PutWithContentType(ctx context.Context, key string, body []byte, contentType string) (err error) {
+	params := &s3.PutObjectInput{
+		Bucket:      aws.String(s.Bucket),
+		Key:         aws.String(key),
+		Body:        bytes.NewReader(body),
+		ContentType: aws.String(contentType),
+	}
+	return s.PutRaw(ctx, params)
+}
+
+func (s *S3Store) PutWithMetadata(ctx context.Context, key string, body []byte, metadata map[string]string) (err error) {
 	params := &s3.PutObjectInput{
 		Bucket:   aws.String(s.Bucket),
 		Key:      aws.String(key),
 		Body:     bytes.NewReader(body),
 		Metadata: metadata,
 	}
+	return s.PutRaw(ctx, params)
+}
+
+func (s *S3Store) PutRaw(ctx context.Context, params *s3.PutObjectInput) (err error) {
 	_, err = s.Uploader.Upload(ctx, params)
 	return
 }
