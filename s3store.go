@@ -37,14 +37,15 @@ func NewS3Store(bucket string) (*S3Store, error) {
 }
 
 func (s *S3Store) Set(key string, body []byte) (err error) {
-	return s.SetWithCtx(context.TODO(), key, body)
+	return s.SetWithCtx(context.TODO(), key, body, nil)
 }
 
-func (s *S3Store) SetWithCtx(ctx context.Context, key string, body []byte) (err error) {
+func (s *S3Store) SetWithCtx(ctx context.Context, key string, body []byte, metadata map[string]string) (err error) {
 	params := &s3.PutObjectInput{
-		Bucket: aws.String(s.Bucket),
-		Key:    aws.String(key),
-		Body:   bytes.NewReader(body),
+		Bucket:   aws.String(s.Bucket),
+		Key:      aws.String(key),
+		Body:     bytes.NewReader(body),
+		Metadata: metadata,
 	}
 	_, err = s.Uploader.Upload(ctx, params)
 	return
