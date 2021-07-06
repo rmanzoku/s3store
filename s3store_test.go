@@ -78,7 +78,7 @@ func TestGet(t *testing.T) {
 			args: args{
 				key: "testing/sssssample.png",
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "testing/sample.png",
