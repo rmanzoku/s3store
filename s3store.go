@@ -3,7 +3,6 @@ package s3store
 import (
 	"bytes"
 	"context"
-	"errors"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -77,10 +76,6 @@ func (s *S3Store) GetWithCtx(ctx context.Context, key string) ([]byte, error) {
 		Key:    aws.String(key),
 	})
 	if err != nil {
-		e := errors.New("NoSuchKey")
-		if errors.As(err, &e) {
-			return nil, nil
-		}
 		return nil, err
 	}
 
