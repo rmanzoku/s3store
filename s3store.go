@@ -14,6 +14,7 @@ type S3Store struct {
 	Bucket     string
 	Uploader   *manager.Uploader
 	Downloader *manager.Downloader
+	Client     *s3.Client
 }
 
 func NewS3Store(bucket string) (*S3Store, error) {
@@ -24,11 +25,14 @@ func NewS3Store(bucket string) (*S3Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.Uploader = manager.NewUploader(s3.NewFromConfig(cfg), func(u *manager.Uploader) {
+
+	s.Client = s3.NewFromConfig(cfg)
+
+	s.Uploader = manager.NewUploader(s.Client, func(u *manager.Uploader) {
 		u.BufferProvider = manager.NewBufferedReadSeekerWriteToPool(25 * 1024 * 1024)
 	})
 
-	s.Downloader = manager.NewDownloader(s3.NewFromConfig(cfg), func(d *manager.Downloader) {
+	s.Downloader = manager.NewDownloader(s.Client, func(d *manager.Downloader) {
 		d.PartSize = 64 * 1024 * 1024 // 64MB per part
 	})
 
@@ -80,4 +84,26 @@ func (s *S3Store) GetWithCtx(ctx context.Context, key string) ([]byte, error) {
 	}
 
 	return buffer.Bytes(), nil
+}
+
+func (s *S3Store) List(prefix string) ([]string, error) {
+	return s.ListWithCtx(context.TODO(), prefix)
+}
+
+func (s *S3Store) ListWithCtx(ctx context.Context, prefix string) ([]string, error) {
+	params := &s3.ListObjectsV2Input{
+		Bucket: aws.String(s.Bucket),
+		Prefix: aws.String(prefix),
+	}
+	output, err := s.Client.ListObjectsV2(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	keys := make([]string, output.KeyCount)
+	for i, v := range output.Contents {
+		keys[i] = *v.Key
+	}
+
+	return keys, nil
 }
